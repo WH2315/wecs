@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <cassert>
+
+#define WECE_ASSERT(condition, msg) assert(((condition) && (msg)))
 
 #ifndef SPARSE_PAGE_SIZE
 #define SPARSE_PAGE_SIZE 4096
