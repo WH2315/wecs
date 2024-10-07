@@ -68,11 +68,11 @@ TEST_CASE("iterator") {
     REQUIRE(*(end - 2) == 9);
 
     REQUIRE(sparse_set.packed().back() == 3);
-    REQUIRE(sparse_set.find(Entity(0)).index() == -1);
-    REQUIRE(sparse_set.find(Entity(9)).index() == 0);
-    REQUIRE(sparse_set.find(Entity(2)).index() == 1);
-    REQUIRE(sparse_set.find(Entity(3)).index() == 2);
-    REQUIRE(sparse_set.find(Entity(100)).index() == std::numeric_limits<size_t>::max() - 1);
+    REQUIRE(sparse_set.find(Entity(0)).index() == 0);
+    REQUIRE(sparse_set.find(Entity(9)).index() == 1);
+    REQUIRE(sparse_set.find(Entity(2)).index() == 2);
+    REQUIRE(sparse_set.find(Entity(3)).index() == 3);
+    REQUIRE(sparse_set.find(Entity(100)).index() == std::numeric_limits<size_t>::max());
 }
 
 TEST_CASE("insert and remove") {

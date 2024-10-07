@@ -122,7 +122,7 @@ public:
 
     auto insert(EntityType value) {
         auto entity = to_entity(value);
-        WECE_ASSERT(traits_type::entity_mask != entity, "invalid entity");
+        WECS_ASSERT(traits_type::entity_mask != entity, "invalid entity");
         packed_.push_back(to_integral(entity));
         assure(page(entity))[offset(entity)] = packed_.size() - 1u;
         return traits_type::construct(
@@ -132,7 +132,7 @@ public:
     }
 
     virtual void remove(EntityType value) {
-        WECE_ASSERT(contain(value), "entity not found");
+        WECS_ASSERT(contain(value), "entity not found");
         auto entity = to_entity(value);
         auto& ref = sparse_ref(entity);
         auto pos = ref;
@@ -149,7 +149,7 @@ public:
             return false;
         }
         auto pos = sparse_[page][offset(entity)];
-        return pos != npos && packed_[pos] == to_integral(entity);
+        return pos != npos && packed_[pos] == to_integral(value);
     }
 
     size_t index(EntityType value) {
@@ -208,7 +208,11 @@ public:
     auto& packed() noexcept { return std::as_const(*this).packed(); } 
 
     const_iterator find(EntityType value) noexcept {
-        return {packed_, static_cast<typename iterator::difference_type>(index(value))};
+        if (contain(value)) {
+            return {packed_, static_cast<typename iterator::difference_type>(index(value)) + 1};
+        } else {
+            return end();
+        }
     }
 
 private:
@@ -237,7 +241,7 @@ private:
     }
 
     auto& sparse_ref(const entity_type entity) {
-        WECE_ASSERT(sparse_ptr(entity), "invalid entity");
+        WECS_ASSERT(sparse_ptr(entity), "invalid entity");
         return sparse_[page(entity)][offset(entity)];
     }
 
