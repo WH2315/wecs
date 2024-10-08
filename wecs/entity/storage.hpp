@@ -119,7 +119,7 @@ public:
     using const_iterator = internal::StorageIterator<const container_type>;
 
     BasicStorage() {}
-    ~BasicStorage() override {}
+    ~BasicStorage() override { clear(); }
 
     template <typename... Args>
     auto emplace(EntityType value, Args&&... args) {

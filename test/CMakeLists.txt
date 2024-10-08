@@ -6,3 +6,4 @@ macro(AddTest name)
 endmacro(AddTest)
 
 add_subdirectory(entity)
+add_subdirectory(signal)
