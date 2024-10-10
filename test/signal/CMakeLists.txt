@@ -1,1 +1,2 @@
 AddTest(delegate)
+AddTest(sink)
