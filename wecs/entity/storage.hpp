@@ -110,11 +110,12 @@ template <typename EntityType, typename Payload, size_t PageSize, typename Alloc
 class BasicStorage : public BasicSparseSet<EntityType, PageSize> {
 public:
     using entity_type = typename EntityTraits<EntityType>::entity_type;
+    using payload_type = Payload;
     using allocator_type = Allocator;
     using alloc_traits = std::allocator_traits<allocator_type>;
     using container_type = std::vector<typename alloc_traits::pointer, typename alloc_traits::template rebind_alloc<typename alloc_traits::pointer>>;
     using base_type = BasicSparseSet<EntityType, PageSize>;
-    using component_traits = ComponentTraits<Payload>;
+    using component_traits = ComponentTraits<payload_type>;
     using iterator = internal::StorageIterator<container_type>;
     using const_iterator = internal::StorageIterator<const container_type>;
 
@@ -122,36 +123,36 @@ public:
     ~BasicStorage() override { clear(); }
 
     template <typename... Args>
-    auto emplace(EntityType value, Args&&... args) {
+    auto& emplace(EntityType value, Args&&... args) {
         WECS_ASSERT(!base_type::contain(value), "entity already exists");
         base_type::insert(value);
         auto index = base_type::index(value);
-        return new (assure(index)) Payload{std::forward<Args>(args)...};
+        return *(new (assure(index)) Payload{std::forward<Args>(args)...});
+    }
+
+    template <typename... Func>
+    auto& patch(EntityType value, Func&&... func) {
+        WECS_ASSERT(base_type::contain(value), "entity not found");
+        auto index = base_type::index(value);
+        auto& elem = element_at(index);
+        (std::forward<Func>(func)(elem), ...);
+        return elem;
     }
 
     void remove(EntityType value) override {
         WECS_ASSERT(base_type::contain(value), "entity not found");
         auto index = base_type::index(value);
-        payload_[index]->~Payload();
-        std::swap(payload_[index], payload_[size() - 1]);
+        auto& elem = element_at(index);
+        auto& other = element_at(base_type::size() - 1u);
+        [[maybe_unused]] auto unused = std::exchange(elem, std::move(other));
+        allocator_type allocator = get_allocator();
+        alloc_traits::destroy(allocator, std::addressof(other));
         base_type::remove(value);
     }
 
 public:
-    bool empty() const noexcept {
-        return payload_.empty();
-    }
-
-    auto size() const noexcept {
-        return payload_.size();
-    }
-
-    auto capacity() const noexcept {
-        return payload_.capacity();
-    }
-
     const_iterator cbegin() const noexcept {
-        const auto pos = static_cast<typename iterator::difference_type>(size());
+        const auto pos = static_cast<typename iterator::difference_type>(base_type::size());
         return const_iterator{&payload_, pos};
     }
 
@@ -160,7 +161,7 @@ public:
     }
 
     iterator begin() noexcept {
-        const auto pos = static_cast<typename iterator::difference_type>(size());
+        const auto pos = static_cast<typename iterator::difference_type>(base_type::size());
         return iterator{&payload_, pos};
     }
 
@@ -179,6 +180,10 @@ public:
     const auto& payloads() const noexcept { return payload_; }
     auto& payloads() noexcept { return std::as_const(*this).payloads(); }
 
+    const auto& operator[](EntityType value) const noexcept {
+        return element_at(base_type::index(value));
+    }
+
     const_iterator find(EntityType value) noexcept {
         if (base_type::contain(value)) {
             return {&payload_, static_cast<typename iterator::difference_type>(base_type::index(value)) + 1};
@@ -188,19 +193,19 @@ public:
     }
 
     void clear() noexcept {
-        std::size_t i = 0;
         allocator_type allocator = get_allocator();
-        while (i < size()) {
-            payload_[i]->~Payload();
-            allocator.deallocate(payload_[i], component_traits::page_size);
-            payload_[i] = nullptr;
-            i++;
+        for (auto first = base_type::begin(); !(first.index() < 0); ++first) {
+            alloc_traits::destroy(allocator, std::addressof(element_at(static_cast<size_t>(first.index()))));
         }
         payload_.clear();
         base_type::clear();
     }
 
 private:
+    auto& element_at(const size_t pos) const {
+        return payload_[pos / component_traits::page_size][pos % component_traits::page_size];
+    }
+
     auto assure(size_t index) {
         constexpr auto page_size = component_traits::page_size;
         const auto idx = index / page_size;

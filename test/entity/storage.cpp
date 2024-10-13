@@ -52,16 +52,34 @@ TEST_CASE("storage") {
     REQUIRE(storage.begin() == storage.end());
 
     auto p1 = storage.emplace(Entity(0), Point{1.0, 3.0});
-    REQUIRE(p1->x == 1.0);
-    REQUIRE(p1->y == 3.0);
+    REQUIRE(p1.x == 1.0);
+    REQUIRE(p1.y == 3.0);
     REQUIRE(storage.size() == 1);
     REQUIRE(storage.begin()->x == 1.0);
     REQUIRE(storage.begin()->y == 3.0);
 
     auto p2 = storage.emplace(Entity(2), Point{4.0, 7.0});
-    REQUIRE(p2->x == 4.0);
-    REQUIRE(p2->y == 7.0);
+    REQUIRE(p2.x == 4.0);
+    REQUIRE(p2.y == 7.0);
     REQUIRE(storage.size() == 2);
-    REQUIRE(*storage.begin() == *p2);
-    REQUIRE(*(storage.begin() + 1) == *p1);
+    REQUIRE(*storage.begin() == p2);
+    REQUIRE(*(storage.begin() + 1) == p1);
+
+
+    auto p3 = storage.patch(Entity(2), [](Point& p) {
+        p.x = 5.0;
+    });
+    REQUIRE(p3.x == 5.0);
+    REQUIRE(p3.y == 7.0);
+    REQUIRE(storage.size() == 2);
+    REQUIRE(*storage.begin() == p3);
+    REQUIRE(*(storage.begin() + 1) == p1);
+
+    auto p4 = storage.emplace(Entity(4), Point{7.0, 11.0});
+
+    storage.remove(Entity(0));
+    REQUIRE(storage.size() == 2);
+
+    storage.clear();
+    REQUIRE(storage.empty());
 }
