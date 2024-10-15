@@ -152,7 +152,7 @@ public:
         return pos != npos && packed_[pos] == to_integral(value);
     }
 
-    size_t index(EntityType value) {
+    size_t index(EntityType value) const {
         auto entity = to_entity(value);
         auto page = this->page(entity);
         return page < sparse_.size() ? sparse_[page][offset(entity)] : npos;

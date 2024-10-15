@@ -9,7 +9,7 @@ using namespace wecs;
 #define Entity(x) static_cast<entity>(x)
 
 TEST_CASE("pure storage") {
-    BasicStorage<entity, entity, config::PageSize, void> storage;
+    BasicStorage<entity, entity, config::page_size, void> storage;
     REQUIRE(storage.size() == 0);
     REQUIRE(storage.base_size() == 0);
 
@@ -45,7 +45,7 @@ struct Point {
 };
 
 TEST_CASE("storage") {
-    BasicStorage<entity, Point, config::PageSize, std::allocator<Point>> storage;
+    BasicStorage<entity, Point, config::page_size, std::allocator<Point>> storage;
     REQUIRE(storage.size() == 0);
     REQUIRE(storage.empty());
     REQUIRE_FALSE(storage.contain(Entity(2)));

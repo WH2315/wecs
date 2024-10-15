@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wecs/config/type_info.hpp"
 #include <cstdint>
 #include <cassert>
 
@@ -13,9 +14,15 @@
 #define ENTITY_NUMERIC_TYPE uint32_t
 #endif
 
+#ifndef GET_TYPE_INFO
+#define GET_TYPE_INFO(type) get_type_info<type>()
+#endif
+
 namespace wecs::config {
 
 enum class Entity : ENTITY_NUMERIC_TYPE {};
-constexpr uint32_t PageSize = SPARSE_PAGE_SIZE;
+constexpr uint32_t page_size = SPARSE_PAGE_SIZE;
+using type_info = const TypeInfo*;
+using id_type = uint32_t;
 
 } // namespace wecs::config

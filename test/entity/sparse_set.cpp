@@ -8,7 +8,7 @@ using namespace wecs;
 
 #define Entity(x) static_cast<entity>(x)
 
-using SparseSet = BasicSparseSet<entity, config::PageSize>;
+using SparseSet = BasicSparseSet<entity, config::page_size>;
 
 TEST_CASE("iterator") {
     //    0  9  2  3

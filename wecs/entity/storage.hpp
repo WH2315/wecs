@@ -109,7 +109,7 @@ constexpr bool operator!=(const StorageIterator<Lhs>& lhs,
 template <typename EntityType, typename Payload, size_t PageSize, typename Allocator>
 class BasicStorage : public BasicSparseSet<EntityType, PageSize> {
 public:
-    using entity_type = typename EntityTraits<EntityType>::entity_type;
+    using entity_type = EntityType;
     using payload_type = Payload;
     using allocator_type = Allocator;
     using alloc_traits = std::allocator_traits<allocator_type>;
@@ -183,6 +183,9 @@ public:
     const auto& operator[](EntityType value) const noexcept {
         return element_at(base_type::index(value));
     }
+    auto& operator[](EntityType value) noexcept {
+        return const_cast<Payload&>(std::as_const(*this).operator[](value));
+    }
 
     const_iterator find(EntityType value) noexcept {
         if (base_type::contain(value)) {
@@ -232,8 +235,8 @@ template <typename EntityType, size_t PageSize>
 class BasicStorage<EntityType, EntityType, PageSize, void>
     : public BasicSparseSet<EntityType, PageSize> {
 public:
+    using entity_type = EntityType;
     using traits_type = EntityTraits<EntityType>;
-    using entity_type = typename traits_type::entity_type;
     using base_type = BasicSparseSet<EntityType, PageSize>;
 
     auto emplace() {
@@ -248,7 +251,7 @@ public:
     void remove(EntityType value) override {
         WECS_ASSERT(base_type::contain(value), "entity not found");
         auto& ref = base_type::swap(value, EntityType{base_type::packed()[length_ - 1]});
-        ref = static_cast<entity_type>(traits_type::next(EntityType{ref}));
+        ref = static_cast<typename traits_type::entity_type>(traits_type::next(EntityType{ref}));
         length_--;
     }
 
