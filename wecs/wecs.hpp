@@ -1,6 +1,7 @@
 #pragma once
 
-#include "config/config.hpp"
+#include "wecs/entity/fwd.hpp"
+#include "wecs/signal/fwd.hpp"
 
 namespace wecs {
 
