@@ -3,6 +3,7 @@
 #include <type_traits>
 
 namespace wecs {
+
 template <typename To, typename From>
 struct constness_as {
     using type = std::remove_const_t<To>;
