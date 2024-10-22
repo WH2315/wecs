@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wecs/signal/sigh.hpp"
+#include "wecs/signal/sink.hpp"
 #include "wecs/entity/storage.hpp"
 
 namespace wecs {
